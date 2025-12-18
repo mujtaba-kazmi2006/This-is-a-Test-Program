@@ -16,6 +16,205 @@ import streamlit as st
 import time
 import base64
 from pathlib import Path
+import hashlib
+import os
+
+USER_DATA_FILE = "user_data.json"
+FREE_USES_LIMIT = 3
+
+def load_user_data():
+    """Load user data from JSON file"""
+    if os.path.exists(USER_DATA_FILE):
+        try:
+            with open(USER_DATA_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return {"users": {}}
+    return {"users": {}}
+
+def save_user_data(data):
+    """Save user data to JSON file"""
+    with open(USER_DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def get_user_by_email(email):
+    """Get user by email"""
+    data = load_user_data()
+    return data["users"].get(email.lower())
+
+def create_user(name, email):
+    """Create a new user"""
+    data = load_user_data()
+    email_lower = email.lower()
+    data["users"][email_lower] = {
+        "name": name,
+        "email": email_lower,
+        "created_at": datetime.now().isoformat(),
+        "total_uses": 0,
+        "features_used": {
+            "chat": 0,
+            "quick_analysis": 0,
+            "tokenomics": 0,
+            "prediction": 0,
+            "chart_analysis": 0,
+            "news": 0
+        },
+        "last_active": datetime.now().isoformat()
+    }
+    save_user_data(data)
+    return data["users"][email_lower]
+
+def update_user_usage(email, feature):
+    """Update user's usage count for a feature"""
+    data = load_user_data()
+    email_lower = email.lower()
+    if email_lower in data["users"]:
+        data["users"][email_lower]["total_uses"] += 1
+        if feature in data["users"][email_lower]["features_used"]:
+            data["users"][email_lower]["features_used"][feature] += 1
+        else:
+            data["users"][email_lower]["features_used"][feature] = 1
+        data["users"][email_lower]["last_active"] = datetime.now().isoformat()
+        save_user_data(data)
+
+def get_session_id():
+    """Generate a unique session ID based on browser fingerprint"""
+    return hashlib.md5(str(time.time()).encode()).hexdigest()[:16]
+
+def init_auth_state():
+    """Initialize authentication state"""
+    if "auth_initialized" not in st.session_state:
+        st.session_state.auth_initialized = True
+        st.session_state.is_authenticated = False
+        st.session_state.user_email = None
+        st.session_state.guest_uses = 0
+        st.session_state.show_signup = False
+
+def check_and_increment_usage(feature="chat"):
+    """Check if user can use feature and increment usage. Returns True if allowed."""
+    if st.session_state.is_authenticated and st.session_state.user_email:
+        update_user_usage(st.session_state.user_email, feature)
+        return True
+    else:
+        if st.session_state.guest_uses < FREE_USES_LIMIT:
+            st.session_state.guest_uses += 1
+            return True
+        else:
+            st.session_state.show_signup = True
+            return False
+
+def get_remaining_free_uses():
+    """Get remaining free uses for guest"""
+    return max(0, FREE_USES_LIMIT - st.session_state.guest_uses)
+
+def render_signup_modal():
+    """Render signup modal when free uses are exhausted"""
+    st.markdown("""
+    <style>
+    .signup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .signup-modal {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 450px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        border: 1px solid #333;
+    }
+    .signup-title {
+        color: #00d4aa;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .signup-subtitle {
+        color: #aaa;
+        font-size: 16px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+def render_auth_ui():
+    """Render authentication UI in sidebar"""
+    init_auth_state()
+    
+    with st.sidebar:
+        if st.session_state.is_authenticated and st.session_state.user_email:
+            user = get_user_by_email(st.session_state.user_email)
+            if user:
+                st.markdown(f"""
+                <div style='background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333;'>
+                    <p style='color: #00d4aa; font-weight: bold; margin: 0;'>Welcome back, {user['name']}!</p>
+                    <p style='color: #888; font-size: 12px; margin: 5px 0 0 0;'>Total uses: {user['total_uses']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("Logout", key="logout_btn"):
+                    st.session_state.is_authenticated = False
+                    st.session_state.user_email = None
+                    st.session_state.guest_uses = 0
+                    st.rerun()
+        else:
+            remaining = get_remaining_free_uses()
+            if remaining > 0:
+                st.markdown(f"""
+                <div style='background: linear-gradient(135deg, #2d2d44, #1a1a2e); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;'>
+                    <p style='color: #ffaa00; font-weight: bold; margin: 0; font-size: 14px;'>Guest Mode</p>
+                    <p style='color: #888; font-size: 12px; margin: 5px 0 0 0;'>{remaining} free uses remaining</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with st.expander("Sign Up / Login", expanded=st.session_state.show_signup):
+                signup_name = st.text_input("Your Name", key="signup_name_input")
+                signup_email = st.text_input("Email Address", key="signup_email_input")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Sign Up", key="signup_btn", use_container_width=True):
+                        if signup_name and signup_email and "@" in signup_email:
+                            existing = get_user_by_email(signup_email)
+                            if existing:
+                                st.error("Email already registered. Click Login.")
+                            else:
+                                create_user(signup_name, signup_email)
+                                st.session_state.is_authenticated = True
+                                st.session_state.user_email = signup_email.lower()
+                                st.session_state.show_signup = False
+                                st.success("Account created!")
+                                st.rerun()
+                        else:
+                            st.error("Please enter valid name and email")
+                
+                with col2:
+                    if st.button("Login", key="login_btn", use_container_width=True):
+                        if signup_email and "@" in signup_email:
+                            existing = get_user_by_email(signup_email)
+                            if existing:
+                                st.session_state.is_authenticated = True
+                                st.session_state.user_email = signup_email.lower()
+                                st.session_state.show_signup = False
+                                st.success(f"Welcome back, {existing['name']}!")
+                                st.rerun()
+                            else:
+                                st.error("Email not found. Please sign up.")
+                        else:
+                            st.error("Please enter a valid email")
+        
+        st.markdown("---")
 
 
 
@@ -1890,6 +2089,11 @@ if "uploaded_b64" not in st.session_state:
     st.session_state.uploaded_b64 = None
 if "chart_analysis" not in st.session_state:
     st.session_state.chart_analysis = None
+if "show_terms" not in st.session_state:
+    st.session_state.show_terms = False    
+
+# Initialize auth state before sidebar
+init_auth_state()
 
 # sidebar
 with st.sidebar:
@@ -1898,11 +2102,14 @@ with st.sidebar:
     with col1:
         st.header("Profile & Controls")
     with col2:
-        # Simple toggle button
         if st.button("◐", help="Toggle theme", key="theme_toggle"):
             st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
             st.rerun()
-    
+
+# Render auth UI at top of sidebar
+render_auth_ui()
+
+with st.sidebar:
     st.session_state.user_name = st.text_input("Your name", st.session_state.user_name)
     st.session_state.user_age = st.text_input("Your age (optional)", st.session_state.user_age)
     if st.button("Start New Chat"):
@@ -1918,11 +2125,14 @@ with st.sidebar:
         
         # Add analyze button when chart is uploaded
         if st.button("🔍 Analyze Chart", key="analyze_chart_btn"):
-            with st.spinner("Analyzing chart..."):
-                result = analyze_chart(st.session_state.uploaded_b64)
-                st.session_state.chart_analysis = result
-                st.markdown(get_autoscroll_script(), unsafe_allow_html=True)
-            st.rerun()
+            if not check_and_increment_usage("chart_analysis"):
+                st.warning("You've used all 3 free uses. Please sign up to continue!")
+            else:
+                with st.spinner("Analyzing chart..."):
+                    result = analyze_chart(st.session_state.uploaded_b64)
+                    st.session_state.chart_analysis = result
+                    st.markdown(get_autoscroll_script(), unsafe_allow_html=True)
+                st.rerun()
 
     st.markdown("---")
     st.subheader("Quick Examples")
@@ -1938,7 +2148,9 @@ with st.sidebar:
     if st.button("Predict BTC price movement"):
         st.session_state.conversation.append({"role":"user","content":"Predict BTC price movement 15m"})
         st.rerun()
-
+    st.markdown("---")
+    if st.button("📄 Terms & Disclaimer", key="show_terms_btn", use_container_width=True):
+        st.session_state.show_terms = True
     st.markdown("---")
     st.subheader("Quick Analysis")
     
@@ -1970,7 +2182,9 @@ with st.sidebar:
     selected_tf = st.selectbox("Select Timeframe", list(quick_timeframes.keys()), key="quick_tf")
     
     if st.button("Run Quick Analysis", key="quick_analysis_btn"):
-        if betterpredictormodule:
+        if not check_and_increment_usage("quick_analysis"):
+            st.warning("You've used all 3 free uses. Please sign up to continue!")
+        elif betterpredictormodule:
             with st.spinner("Analyzing..."):
                 try:
                     symbol = quick_coins[selected_coin]
@@ -2037,6 +2251,143 @@ col1, col2 = st.columns([3,1])
 
 with col1:
     st.header("Chat")
+    
+    # Terms Modal - ADD THIS ENTIRE SECTION ↓
+    if st.session_state.get("show_terms", False):
+        with st.container():
+            st.markdown("# 📄 Nunno AI - Terms of Service & User Guide")
+            st.markdown("**Version 1.0 | Last Updated: December 2024**")
+            st.markdown("---")
+            
+            with st.expander("📋 About Nunno AI", expanded=True):
+                st.markdown("""
+                Nunno (Numinous Nexus AI) is an **educational platform** designed to help beginners learn about trading, 
+                investing, and cryptocurrency markets. Built by Mujtaba Kazmi and team, Nunno aims to make financial 
+                education accessible through AI-powered tools and analysis.
+                """)
+            
+            with st.expander("🎓 Educational Purpose Statement - IMPORTANT", expanded=True):
+                st.warning("**NUNNO IS NOT A FINANCIAL ADVISOR**")
+                st.markdown("""
+                Nunno AI is designed **exclusively for educational purposes**. All features, analyses, predictions, 
+                and recommendations provided by Nunno are:
+                
+                **✅ What Nunno IS:**
+                - Educational examples and learning tools
+                - Market data analysis for study purposes
+                - Technical analysis demonstrations
+                - Portfolio construction examples
+                
+                **❌ What Nunno IS NOT:**
+                - Professional financial advice
+                - Investment recommendations
+                - Trading signals to be acted upon
+                - A substitute for licensed financial advisors
+                - Guaranteed or accurate predictions
+                """)
+            
+            with st.expander("🛠️ What Nunno Can Do"):
+                st.markdown("""
+                ### Features:
+                1. **AI Chat Assistant** - Answer beginner questions about trading
+                2. **Comprehensive Tokenomics Analysis** - Detailed crypto token metrics
+                3. **Technical Analysis & Predictions** - Chart patterns and indicators
+                4. **Chart Image Analysis** - Upload charts for AI analysis
+                5. **Market News Integration** - Real-time news summaries
+                6. **Monte Carlo Simulations** - Portfolio risk modeling
+                7. **Quick Analysis Tools** - Rapid technical analysis
+                8. **Portfolio Building Examples** - Sample allocations by risk level
+                """)
+            
+            with st.expander("⚠️ User Responsibilities & Disclaimers - READ CAREFULLY"):
+                st.error("**BY USING NUNNO AI, YOU AGREE THAT:**")
+                st.markdown("""
+                1. **No Financial Advice** - Nunno does NOT provide personalized financial advice
+                2. **No Guarantees** - Past performance does not indicate future results
+                3. **User Responsibility** - YOU are solely responsible for your trading decisions
+                4. **Not Professional Services** - Nunno is not a registered investment advisor
+                5. **Data Accuracy** - Data may be delayed, incomplete, or incorrect
+                6. **Risk Acknowledgment** - Trading involves substantial risk of loss
+                """)
+            
+            with st.expander("🚫 Limitation of Liability - LEGAL PROTECTION"):
+                st.error("**THE COMPANY SHALL NOT BE LIABLE FOR:**")
+                st.markdown("""
+                - Any financial losses from use of Nunno AI
+                - Trading decisions based on Nunno's outputs
+                - Inaccurate, incomplete, or delayed data
+                - Technical errors, bugs, or system failures
+                - Service interruptions or downtime
+                - Any direct, indirect, or consequential damages
+                - Lost profits or opportunities
+                
+                **Maximum Liability:** In no event shall our total liability exceed $0 (free service).
+                """)
+            
+            with st.expander("🔧 Service Status & Development"):
+                st.info("**Active Development Notice**")
+                st.markdown("""
+                - Nunno AI is in active development
+                - Features may be added, modified, or removed
+                - Bugs are being actively addressed
+                - We make no warranties about service availability or accuracy
+                """)
+            
+            with st.expander("📊 Data Sources & Third Parties"):
+                st.markdown("""
+                Nunno uses data from:
+                - CoinGecko API (cryptocurrency data)
+                - Binance API (price and volume data)
+                - NewsAPI (market news)
+                - OpenRouter AI (language model services)
+                
+                **We are not responsible for third-party API failures or inaccuracies.**
+                """)
+            
+            with st.expander("⚖️ Acceptable Use Policy"):
+                st.markdown("""
+                **✅ You MAY use Nunno for:**
+                - Learning about trading and investing
+                - Understanding market concepts
+                - Educational analysis and research
+                
+                **❌ You MAY NOT use Nunno for:**
+                - Automated trading systems
+                - Commercial redistribution of data
+                - Illegal activities
+                - Market manipulation schemes
+                - Claiming Nunno's outputs as professional advice
+                """)
+            
+            with st.expander("📢 Important Reminders"):
+                st.markdown("""
+                ### 🎓 Education First
+                Nunno is a learning tool. Use it to understand markets, not to make blind decisions.
+                
+                ### 💰 Risk Management
+                Never invest more than you can afford to lose. Diversify. Use stop losses.
+                
+                ### 🔍 Do Your Own Research (DYOR)
+                Always verify information and conduct thorough research.
+                
+                ### 👨‍💼 Seek Professional Advice
+                Consult licensed financial advisors for personalized guidance.
+                """)
+            
+            st.markdown("---")
+            st.success("**By continuing to use Nunno AI, you acknowledge that you have read and agree to these terms.**")
+            
+            col_t1, col_t2 = st.columns([1, 1])
+            with col_t1:
+                if st.button("✅ I Understand & Agree", key="accept_terms", use_container_width=True):
+                    st.session_state.show_terms = False
+                    st.rerun()
+            with col_t2:
+                if st.button("❌ Close", key="close_terms", use_container_width=True):
+                    st.session_state.show_terms = False
+                    st.rerun()
+    # Terms Modal END - ADD THIS ENTIRE SECTION ↑
+    
     # render conversation
     for msg in st.session_state.conversation:
         role = msg.get("role","user")
@@ -2198,6 +2549,10 @@ with col1:
     
     prompt = st.chat_input("Ask Nunno about trading, tokenomics, predictions, news...")
     if prompt:
+        if not check_and_increment_usage("chat"):
+            st.warning("You've used all 3 free uses. Please sign up in the sidebar to continue using Nunno AI!")
+            st.stop()
+        
         st.session_state.conversation.append({"role":"user","content":prompt})
         lower = prompt.lower()
 
