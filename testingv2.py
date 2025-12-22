@@ -151,7 +151,7 @@ def render_signup_modal():
 def render_auth_ui():
     """Render authentication UI in sidebar"""
     init_auth_state()
-    
+
     with st.sidebar:
         if st.session_state.is_authenticated and st.session_state.user_email:
             user = get_user_by_email(st.session_state.user_email)
@@ -162,7 +162,7 @@ def render_auth_ui():
                     <p style='color: #888; font-size: 12px; margin: 5px 0 0 0;'>Total uses: {user['total_uses']}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                
+
                 if st.button("Logout", key="logout_btn"):
                     st.session_state.is_authenticated = False
                     st.session_state.user_email = None
@@ -177,11 +177,11 @@ def render_auth_ui():
                     <p style='color: #888; font-size: 12px; margin: 5px 0 0 0;'>{remaining} free uses remaining</p>
                 </div>
                 """, unsafe_allow_html=True)
-            
+
             with st.expander("Sign Up / Login", expanded=st.session_state.show_signup):
                 signup_name = st.text_input("Your Name", key="signup_name_input")
                 signup_email = st.text_input("Email Address", key="signup_email_input")
-                
+
                 col1, col2 = st.columns(2)
                 with col1:
                     if st.button("Sign Up", key="signup_btn", use_container_width=True):
@@ -198,7 +198,7 @@ def render_auth_ui():
                                 st.rerun()
                         else:
                             st.error("Please enter valid name and email")
-                
+
                 with col2:
                     if st.button("Login", key="login_btn", use_container_width=True):
                         if signup_email and "@" in signup_email:
@@ -213,7 +213,7 @@ def render_auth_ui():
                                 st.error("Email not found. Please sign up.")
                         else:
                             st.error("Please enter a valid email")
-        
+
         st.markdown("---")
 
 
@@ -275,8 +275,8 @@ if not st.session_state["splash_shown"]:
     """
     st.markdown(splash_html, unsafe_allow_html=True)
 
-    # Wait, then rerun main app
-    time.sleep(3)
+    # Quick splash, then rerun main app
+    time.sleep(0.5)
     st.session_state["splash_shown"] = True
     st.rerun()
 
@@ -308,12 +308,12 @@ SYSTEM_PROMPT = (
     "When giving outputs, make them neat with headings, tables, and emojis. "
     "If asked about your founder, say you were built by Mujtaba Kazmi. "
     "For tokenomics analysis, explain each metric in simple terms that beginners can understand."
-    
+
      "You NEVER refuse beginner financial education questions. "
     "You do NOT give financial advice, but you DO give educational examples, models, and sample allocations."
     "when asked with questions like these you can tell the user that you have inbuilt tools to that and you should ask the user if he wants to use them, tools like analysis, tokenomics,"
     "you can list the tools for the beginners to make them understand what the tools are and how they can help them"
-    
+
     "You are allowed to:"
     "- Explain what someone can do with small or large capital"
     "- Build example crypto portfolios based on capital"
@@ -327,11 +327,12 @@ SYSTEM_PROMPT = (
 
     "Tone: simple, calm, beginner-friendly."
     "Format responses with headings, bullet points, and emojis."
-    
+
 )
 
 MAX_HISTORY_MESSAGES = 20
 
+@st.cache_data
 def build_beginner_portfolio(capital: float, risk_level: str = "low"):
     """
     Educational portfolio construction based on capital and risk.
@@ -376,7 +377,7 @@ def build_beginner_portfolio(capital: float, risk_level: str = "low"):
 class ComprehensiveTokenomics:
     def __init__(self):
         self.coingecko_base = "https://api.coingecko.com/api/v3"
-        
+
     def fetch_comprehensive_token_data(self, coin_id: str, investment_amount: float = 1000) -> Dict:
         """Fetch comprehensive tokenomics data with detailed analysis"""
         try:
@@ -384,31 +385,31 @@ class ComprehensiveTokenomics:
             coin_data = self._fetch_coingecko_data(coin_id)
             if not coin_data:
                 return None
-                
+
             # Historical price analysis
             price_analysis = self._analyze_price_history(coin_id)
-            
+
             # Market metrics
             market_metrics = self._calculate_market_metrics(coin_data, investment_amount)
-            
+
             # On-chain and technical metrics
             technical_metrics = self._calculate_technical_metrics(coin_data)
-            
+
             # Liquidity and exchange data
             liquidity_data = self._fetch_liquidity_data(coin_data)
-            
+
             # Social and development metrics
             social_metrics = self._fetch_social_metrics(coin_data)
-            
+
             # Risk assessment
             risk_assessment = self._calculate_risk_metrics(coin_data, price_analysis, market_metrics)
-            
+
             # Supply economics
             supply_economics = self._analyze_supply_economics(coin_data)
-            
+
             # Competitive analysis
             competitive_metrics = self._get_competitive_position(coin_data)
-            
+
             # Combine all data
             comprehensive_data = {
                 **self._format_basic_info(coin_data),
@@ -421,13 +422,13 @@ class ComprehensiveTokenomics:
                 **supply_economics,
                 **competitive_metrics
             }
-            
+
             return comprehensive_data
-            
+
         except Exception as e:
             print(f"Error in comprehensive analysis: {e}")
             return None
-    
+
     def _fetch_coingecko_data(self, coin_id: str) -> Dict:
         """Fetch detailed coin data from CoinGecko"""
         try:
@@ -440,15 +441,15 @@ class ComprehensiveTokenomics:
                 "developer_data": "true",
                 "sparkline": "false"
             }
-            
+
             response = requests.get(url, params=params, timeout=15)
             response.raise_for_status()
             return response.json()
-            
+
         except Exception as e:
             print(f"CoinGecko API error: {e}")
             return None
-    
+
     def _analyze_price_history(self, coin_id: str) -> Dict:
         """Analyze historical price data for multiple timeframes"""
         try:
@@ -458,62 +459,62 @@ class ComprehensiveTokenomics:
                 "90d": 90,
                 "1y": 365
             }
-            
+
             analysis = {}
-            
+
             for period, days in timeframes.items():
                 url = f"{self.coingecko_base}/coins/{coin_id}/market_chart"
                 params = {"vs_currency": "usd", "days": days}
-                
+
                 try:
                     response = requests.get(url, params=params, timeout=10)
                     response.raise_for_status()
                     data = response.json()
-                    
+
                     prices = [p[1] for p in data.get("prices", [])]
                     volumes = [v[1] for v in data.get("total_volumes", [])]
-                    
+
                     if len(prices) >= 2:
                         returns = self._calculate_returns_metrics(prices, days)
                         volume_analysis = self._analyze_volume(volumes)
-                        
+
                         analysis[f"Performance_{period}"] = f"{returns['total_return']:+.2f}% (Vol: {returns['volatility']:.1f}%)"
                         analysis[f"CAGR_{period}"] = f"{returns['annualized_return']:+.2f}%"
                         analysis[f"Sharpe_Ratio_{period}"] = f"{returns['sharpe_ratio']:.2f}"
                         analysis[f"Max_Drawdown_{period}"] = f"-{returns['max_drawdown']:.2f}%"
                         analysis[f"Avg_Volume_{period}"] = f"${volume_analysis['avg_volume']/1e6:,.1f}M"
-                        
+
                     time.sleep(0.2)  # Rate limiting
-                    
+
                 except Exception:
                     continue
-            
+
             return analysis
-            
+
         except Exception:
             return {}
-    
+
     def _calculate_returns_metrics(self, prices: List[float], days: int) -> Dict:
         """Calculate comprehensive return metrics"""
         if len(prices) < 2:
             return {}
-            
+
         # Calculate returns
         returns = [np.log(prices[i+1] / prices[i]) for i in range(len(prices)-1)]
-        
+
         # Total return
         total_return = (prices[-1] / prices[0] - 1) * 100
-        
+
         # Annualized return
         annualized_return = ((prices[-1] / prices[0]) ** (365/days) - 1) * 100
-        
+
         # Volatility (annualized)
         volatility = np.std(returns) * np.sqrt(365) * 100
-        
+
         # Sharpe ratio (assuming 2% risk-free rate)
         risk_free_rate = 0.02
         sharpe_ratio = (annualized_return/100 - risk_free_rate) / (volatility/100) if volatility > 0 else 0
-        
+
         # Maximum drawdown
         peak = prices[0]
         max_dd = 0
@@ -523,7 +524,7 @@ class ComprehensiveTokenomics:
             dd = (peak - price) / peak * 100
             if dd > max_dd:
                 max_dd = dd
-        
+
         return {
             "total_return": total_return,
             "annualized_return": annualized_return,
@@ -531,27 +532,27 @@ class ComprehensiveTokenomics:
             "sharpe_ratio": sharpe_ratio,
             "max_drawdown": max_dd
         }
-    
+
     def _analyze_volume(self, volumes: List[float]) -> Dict:
         """Analyze trading volume patterns"""
         if len(volumes) < 7:
             return {"avg_volume": 0, "trend": "Unknown"}
-            
+
         avg_volume = np.mean(volumes)
         recent_avg = np.mean(volumes[-7:])  # Last 7 days
         older_avg = np.mean(volumes[-14:-7]) if len(volumes) >= 14 else avg_volume
-        
+
         trend = "Increasing" if recent_avg > older_avg * 1.1 else "Decreasing" if recent_avg < older_avg * 0.9 else "Stable"
-        
+
         return {
             "avg_volume": avg_volume,
             "trend": trend
         }
-    
+
     def _calculate_market_metrics(self, coin_data: Dict, investment_amount: float) -> Dict:
         """Calculate advanced market metrics"""
         market_data = coin_data.get("market_data", {})
-        
+
         # Basic price and supply data
         price = market_data.get("current_price", {}).get("usd", 0) or 0
         circulating_supply = market_data.get("circulating_supply") or 0
@@ -559,20 +560,20 @@ class ComprehensiveTokenomics:
         max_supply = market_data.get("max_supply") or 0
         market_cap = market_data.get("market_cap", {}).get("usd", 0) or 0
         volume_24h = market_data.get("total_volume", {}).get("usd", 0) or 0
-        
+
         # Advanced calculations
         fdv = total_supply * price if total_supply else market_cap
         max_fdv = max_supply * price if max_supply else None
-        
+
         circulating_percent = (circulating_supply / total_supply) * 100 if total_supply else None
         max_supply_percent = (circulating_supply / max_supply) * 100 if max_supply else None
-        
+
         # Volume metrics
         volume_to_mcap = (volume_24h / market_cap) * 100 if market_cap > 0 else 0
-        
+
         # Investment calculations
         tokens_bought = investment_amount / price if price > 0 else 0
-        
+
         # Price performance metrics
         price_changes = {
             "1h": market_data.get("price_change_percentage_1h_in_currency", {}).get("usd"),
@@ -581,7 +582,7 @@ class ComprehensiveTokenomics:
             "30d": market_data.get("price_change_percentage_30d_in_currency", {}).get("usd"),
             "1y": market_data.get("price_change_percentage_1y_in_currency", {}).get("usd")
         }
-        
+
         # All-time high/low analysis
         ath = market_data.get("ath", {}).get("usd", 0)
         atl = market_data.get("atl", {}).get("usd", 0)
@@ -589,7 +590,7 @@ class ComprehensiveTokenomics:
         atl_change = market_data.get("atl_change_percentage", {}).get("usd", 0)
         ath_date = market_data.get("ath_date", {}).get("usd", "")
         atl_date = market_data.get("atl_date", {}).get("usd", "")
-        
+
         return {
             "Current_Price": f"${price:,.8f}",
             "Market_Cap": f"${market_cap/1e9:,.2f}B" if market_cap >= 1e9 else f"${market_cap/1e6:,.2f}M",
@@ -616,33 +617,33 @@ class ComprehensiveTokenomics:
             "ATL_Date": atl_date.split('T')[0] if atl_date else "N/A",
             "Distance_from_ATL": f"{atl_change:+.2f}%"
         }
-    
+
     def _calculate_inflation_rate(self, circulating: float, total: float, max_supply: float) -> float:
         """Calculate estimated annual inflation rate"""
         if not circulating or not total:
             return 0.0
-            
+
         if max_supply and circulating >= max_supply * 0.99:  # Nearly fully diluted
             return 0.0
-            
+
         # Estimate based on remaining supply to be released
         remaining = total - circulating if total > circulating else 0
         if remaining <= 0:
             return 0.0
-            
+
         # Rough estimation: assume remaining supply is released over next 3-5 years
         annual_new_supply = remaining / 4  # 4 year average
         current_inflation_rate = (annual_new_supply / circulating) * 100
-        
+
         return min(current_inflation_rate, 100)  # Cap at 100% for sanity
-    
+
     def _calculate_technical_metrics(self, coin_data: Dict) -> Dict:
         """Calculate technical and fundamental metrics"""
         market_data = coin_data.get("market_data", {})
-        
+
         # Market dominance
         market_cap = market_data.get("market_cap", {}).get("usd", 0) or 0
-        
+
         # Calculate market cap categories
         if market_cap >= 10e9:
             mcap_category = "Large Cap (>$10B)"
@@ -654,18 +655,18 @@ class ComprehensiveTokenomics:
             mcap_category = "Micro Cap ($50M-$300M)"
         else:
             mcap_category = "Nano Cap (<$50M)"
-        
+
         # Price metrics
         price = market_data.get("current_price", {}).get("usd", 0) or 0
         ath = market_data.get("ath", {}).get("usd", 0)
         atl = market_data.get("atl", {}).get("usd", 0)
-        
+
         # Price position analysis
         if ath > 0 and atl > 0:
             price_range_position = ((price - atl) / (ath - atl)) * 100
         else:
             price_range_position = 0
-            
+
         return {
             "Market_Cap_Category": mcap_category,
             "Price_Range_Position": f"{price_range_position:.1f}% between ATL and ATH",
@@ -674,35 +675,35 @@ class ComprehensiveTokenomics:
             "Hashing_Algorithm": coin_data.get("hashing_algorithm", "N/A"),
             "Market_Data_Last_Updated": market_data.get("last_updated", "N/A").split('T')[0] if market_data.get("last_updated") else "N/A"
         }
-    
+
     def _fetch_liquidity_data(self, coin_data: Dict) -> Dict:
         """Analyze liquidity and exchange data"""
         try:
             tickers = coin_data.get("tickers", [])
-            
+
             if not tickers:
                 return {"Exchange_Count": "0", "Top_Exchange": "N/A", "Liquidity_Score": "Low"}
-            
+
             # Count unique exchanges
             exchanges = set()
             total_volume = 0
             exchange_volumes = {}
-            
+
             for ticker in tickers[:50]:  # Limit to avoid rate limits
                 exchange = ticker.get("market", {}).get("name", "Unknown")
                 volume = ticker.get("converted_volume", {}).get("usd", 0) or 0
-                
+
                 exchanges.add(exchange)
                 total_volume += volume
-                
+
                 if exchange in exchange_volumes:
                     exchange_volumes[exchange] += volume
                 else:
                     exchange_volumes[exchange] = volume
-            
+
             # Find top exchange
             top_exchange = max(exchange_volumes.items(), key=lambda x: x[1])[0] if exchange_volumes else "N/A"
-            
+
             # Liquidity score based on exchange count and volume
             exchange_count = len(exchanges)
             if exchange_count >= 20 and total_volume >= 100e6:
@@ -713,38 +714,38 @@ class ComprehensiveTokenomics:
                 liquidity_score = "Fair"
             else:
                 liquidity_score = "Poor"
-            
+
             return {
                 "Exchange_Count": str(exchange_count),
                 "Top_Exchange": top_exchange,
                 "Total_Exchange_Volume": f"${total_volume/1e6:,.1f}M",
                 "Liquidity_Score": liquidity_score
             }
-            
+
         except Exception:
             return {"Exchange_Count": "N/A", "Top_Exchange": "N/A", "Liquidity_Score": "Unknown"}
-    
+
     def _fetch_social_metrics(self, coin_data: Dict) -> Dict:
         """Fetch social media and community metrics"""
         try:
             community = coin_data.get("community_data", {})
             developer = coin_data.get("developer_data", {})
-            
+
             # Social metrics
             twitter_followers = community.get("twitter_followers") or 0
             reddit_subscribers = community.get("reddit_subscribers") or 0
             telegram_users = community.get("telegram_channel_user_count") or 0
-            
+
             # Developer metrics
             github_forks = developer.get("forks") or 0
             github_stars = developer.get("stars") or 0
             github_commits_4w = developer.get("commit_count_4_weeks") or 0
             github_contributors = developer.get("subscribers") or 0
-            
+
             # Calculate social score
             social_score = self._calculate_social_score(twitter_followers, reddit_subscribers, telegram_users)
             dev_score = self._calculate_development_score(github_commits_4w, github_contributors, github_stars)
-            
+
             return {
                 "Twitter_Followers": f"{twitter_followers:,}" if twitter_followers else "N/A",
                 "Reddit_Subscribers": f"{reddit_subscribers:,}" if reddit_subscribers else "N/A",
@@ -756,17 +757,17 @@ class ComprehensiveTokenomics:
                 "GitHub_Contributors": f"{github_contributors:,}" if github_contributors else "N/A",
                 "Development_Activity": dev_score
             }
-            
+
         except Exception:
             return {
                 "Social_Media_Score": "Unknown",
                 "Development_Activity": "Unknown"
             }
-    
+
     def _calculate_social_score(self, twitter: int, reddit: int, telegram: int) -> str:
         """Calculate social media engagement score"""
         total_score = 0
-        
+
         # Twitter scoring
         if twitter >= 1000000:
             total_score += 30
@@ -774,7 +775,7 @@ class ComprehensiveTokenomics:
             total_score += 20
         elif twitter >= 10000:
             total_score += 10
-        
+
         # Reddit scoring
         if reddit >= 500000:
             total_score += 25
@@ -782,7 +783,7 @@ class ComprehensiveTokenomics:
             total_score += 15
         elif reddit >= 5000:
             total_score += 8
-        
+
         # Telegram scoring
         if telegram >= 100000:
             total_score += 20
@@ -790,7 +791,7 @@ class ComprehensiveTokenomics:
             total_score += 10
         elif telegram >= 1000:
             total_score += 5
-        
+
         if total_score >= 50:
             return "Excellent (Very High Engagement)"
         elif total_score >= 30:
@@ -799,11 +800,11 @@ class ComprehensiveTokenomics:
             return "Fair (Moderate Engagement)"
         else:
             return "Poor (Low Engagement)"
-    
+
     def _calculate_development_score(self, commits: int, contributors: int, stars: int) -> str:
         """Calculate development activity score"""
         score = 0
-        
+
         # Commits in last 4 weeks
         if commits >= 100:
             score += 40
@@ -813,7 +814,7 @@ class ComprehensiveTokenomics:
             score += 15
         elif commits > 0:
             score += 5
-        
+
         # Contributors
         if contributors >= 100:
             score += 30
@@ -821,7 +822,7 @@ class ComprehensiveTokenomics:
             score += 20
         elif contributors >= 5:
             score += 10
-        
+
         # Stars
         if stars >= 10000:
             score += 30
@@ -829,7 +830,7 @@ class ComprehensiveTokenomics:
             score += 20
         elif stars >= 100:
             score += 10
-        
+
         if score >= 70:
             return "Very Active (High Development)"
         elif score >= 40:
@@ -838,21 +839,21 @@ class ComprehensiveTokenomics:
             return "Moderate (Some Development)"
         else:
             return "Low (Minimal Development)"
-    
+
     def _calculate_risk_metrics(self, coin_data: Dict, price_analysis: Dict, market_metrics: Dict) -> Dict:
         """Calculate comprehensive risk assessment"""
         market_data = coin_data.get("market_data", {})
-        
+
         # Extract key metrics for risk calculation
         market_cap = market_data.get("market_cap", {}).get("usd", 0) or 0
         circulating_supply = market_data.get("circulating_supply") or 0
         total_supply = market_data.get("total_supply") or 0
         max_supply = market_data.get("max_supply") or 0
         volume_24h = market_data.get("total_volume", {}).get("usd", 0) or 0
-        
+
         risk_factors = []
         risk_score = 0
-        
+
         # Market cap risk
         if market_cap < 50e6:
             risk_factors.append("Very Low Market Cap (<$50M)")
@@ -862,7 +863,7 @@ class ComprehensiveTokenomics:
             risk_score += 15
         elif market_cap < 2e9:
             risk_score += 5
-        
+
         # Supply risk
         if total_supply and circulating_supply:
             circ_percent = (circulating_supply / total_supply) * 100
@@ -871,7 +872,7 @@ class ComprehensiveTokenomics:
                 risk_score += 20
             elif circ_percent < 80:
                 risk_score += 10
-        
+
         # Liquidity risk
         volume_to_mcap = (volume_24h / market_cap) * 100 if market_cap > 0 else 0
         if volume_to_mcap < 0.5:
@@ -880,7 +881,7 @@ class ComprehensiveTokenomics:
         elif volume_to_mcap < 2:
             risk_factors.append("Low Liquidity (<2% vol/mcap)")
             risk_score += 10
-        
+
         # Volatility risk from price analysis
         for key, value in price_analysis.items():
             if "Performance_30d" in key and "%" in str(value):
@@ -894,7 +895,7 @@ class ComprehensiveTokenomics:
                         risk_score += 15
                 except:
                     pass
-        
+
         # Age risk
         genesis_date = coin_data.get("genesis_date")
         if genesis_date:
@@ -908,7 +909,7 @@ class ComprehensiveTokenomics:
                     risk_score += 5
             except:
                 pass
-        
+
         # Risk level classification
         if risk_score >= 60:
             risk_level = "EXTREMELY HIGH RISK"
@@ -920,14 +921,14 @@ class ComprehensiveTokenomics:
             risk_level = "LOW-MODERATE RISK"
         else:
             risk_level = "RELATIVELY LOW RISK"
-        
+
         return {
             "Risk_Level": risk_level,
             "Risk_Score": f"{risk_score}/100",
             "Risk_Factors": "; ".join(risk_factors) if risk_factors else "No major risk factors identified",
             "Investment_Recommendation": self._get_investment_recommendation(risk_score, market_cap)
         }
-    
+
     def _get_investment_recommendation(self, risk_score: int, market_cap: float) -> str:
         """Generate investment recommendation based on risk"""
         if risk_score >= 60:
@@ -940,22 +941,22 @@ class ComprehensiveTokenomics:
             return "LOW-MODERATE RISK - Suitable for 10-20% portfolio allocation"
         else:
             return "RELATIVELY SAFE - Can consider larger allocation (20%+ of crypto portfolio)"
-    
+
     def _analyze_supply_economics(self, coin_data: Dict) -> Dict:
         """Analyze token supply economics in detail"""
         market_data = coin_data.get("market_data", {})
-        
+
         circulating = market_data.get("circulating_supply") or 0
         total = market_data.get("total_supply") or 0
         max_supply = market_data.get("max_supply") or 0
         price = market_data.get("current_price", {}).get("usd", 0) or 0
-        
+
         # Supply distribution analysis
         if max_supply and total and circulating:
             unreleased_tokens = max_supply - circulating
             unreleased_value = unreleased_tokens * price
             future_dilution = (unreleased_tokens / circulating) * 100 if circulating > 0 else 0
-            
+
             # Token release rate estimation
             if total > circulating:
                 current_unreleased = total - circulating
@@ -963,15 +964,15 @@ class ComprehensiveTokenomics:
             else:
                 current_unreleased = 0
                 release_timeline = "No immediate release pressure"
-            
+
             supply_model = self._determine_supply_model(max_supply, total, circulating)
-            
+
         else:
             unreleased_value = 0
             future_dilution = 0
             release_timeline = "Unknown"
             supply_model = "Unknown"
-        
+
         return {
             "Supply_Model": supply_model,
             "Unreleased_Token_Value": f"${unreleased_value/1e9:,.2f}B" if unreleased_value >= 1e9 else f"${unreleased_value/1e6:,.2f}M",
@@ -979,7 +980,7 @@ class ComprehensiveTokenomics:
             "Token_Release_Timeline": release_timeline,
             "Supply_Distribution": self._analyze_supply_distribution(circulating, total, max_supply)
         }
-    
+
     def _determine_supply_model(self, max_supply: float, total: float, circulating: float) -> str:
         """Determine the token's supply model"""
         if not max_supply:
@@ -992,12 +993,12 @@ class ComprehensiveTokenomics:
             return "Controlled Emission Model"
         else:
             return "Unknown Supply Model"
-    
+
     def _analyze_supply_distribution(self, circulating: float, total: float, max_supply: float) -> str:
         """Analyze how token supply is distributed"""
         if not circulating:
             return "No data available"
-            
+
         if max_supply:
             circ_of_max = (circulating / max_supply) * 100
             if circ_of_max >= 95:
@@ -1010,18 +1011,18 @@ class ComprehensiveTokenomics:
                 return "Early distribution phase (<40% of max supply)"
         else:
             return "Ongoing emission (no max supply)"
-    
+
     def _get_competitive_position(self, coin_data: Dict) -> Dict:
         """Analyze competitive position and market context"""
         try:
             market_data = coin_data.get("market_data", {})
             market_cap = market_data.get("market_cap", {}).get("usd", 0) or 0
             market_cap_rank = market_data.get("market_cap_rank", 999)
-            
+
             # Category analysis
             categories = coin_data.get("categories", [])
             main_category = categories[0] if categories else "Unknown"
-            
+
             # Market position
             if market_cap_rank <= 10:
                 market_position = "Top 10 - Blue Chip Crypto"
@@ -1033,21 +1034,21 @@ class ComprehensiveTokenomics:
                 market_position = "Top 500 - Emerging Project"
             else:
                 market_position = "Outside Top 500 - Speculative"
-            
+
             return {
                 "Primary_Category": main_category,
                 "Market_Position": market_position,
                 "Competitive_Rank": f"#{market_cap_rank}" if market_cap_rank < 999 else "Unranked",
                 "All_Categories": ", ".join(categories[:5]) if len(categories) > 1 else main_category
             }
-            
+
         except Exception:
             return {
                 "Primary_Category": "Unknown",
                 "Market_Position": "Unknown",
                 "Competitive_Rank": "Unknown"
             }
-    
+
     def _format_basic_info(self, coin_data: Dict) -> Dict:
         """Format basic token information"""
         # Safe handling of potentially None values
@@ -1056,21 +1057,21 @@ class ComprehensiveTokenomics:
             blockchain = asset_platform.replace("-", " ").title()
         else:
             blockchain = "Native Blockchain"
-            
+
         # Safe handling of homepage links
         homepage_links = coin_data.get("links", {}).get("homepage", [])
         if homepage_links and isinstance(homepage_links, list):
             website = ", ".join([link for link in homepage_links[:2] if link])
         else:
             website = "N/A"
-            
+
         # Safe handling of contract address
         contract_addr = coin_data.get("contract_address")
         if contract_addr:
             contract_address = str(contract_addr)
         else:
             contract_address = "Native Token"
-            
+
         return {
             "Token_Name": coin_data.get("name", "Unknown"),
             "Symbol": (coin_data.get("symbol") or "").upper(),
@@ -1079,25 +1080,26 @@ class ComprehensiveTokenomics:
             "Blockchain": blockchain,
             "Contract_Address": contract_address
         }
-    
+
     def _truncate_description(self, description: str) -> str:
         """Truncate description to reasonable length"""
         if not description:
             return "No description available"
-        
+
         # Remove HTML tags
         description = re.sub(r'<[^>]+>', '', description)
-        
+
         # Truncate to first 200 characters
         if len(description) > 200:
             return description[:200] + "..."
         return description
 
+@st.cache_data
 def get_ai_tokenomics_explanation(token_data: Dict, user_name: str) -> str:
     """Generate AI explanation of tokenomics data"""
     if not AI_API_KEY or not token_data:
         return "Unable to generate explanation - API key not configured or no data available."
-    
+
     # Create a summary of key metrics for AI to explain
     key_metrics = {
         "Token": f"{token_data.get('Token_Name')} ({token_data.get('Symbol')})",
@@ -1113,40 +1115,41 @@ def get_ai_tokenomics_explanation(token_data: Dict, user_name: str) -> str:
         "Development_Activity": token_data.get("Development_Activity"),
         "Investment_Recommendation": token_data.get("Investment_Recommendation")
     }
-    
+
     prompt = f"""
     Explain this tokenomics analysis to {user_name} in simple, beginner-friendly terms. 
     Break down what each metric means and why it matters for investors:
-    
+
     {json.dumps(key_metrics, indent=2)}
-    
+
     Focus on:
     1. What the price and market cap tell us
     2. Why supply metrics matter (inflation/deflation)
     3. What the risk assessment means
     4. How liquidity affects trading
     5. Whether this looks like a good investment opportunity
-    
+
     Keep it conversational and educational, not financial advice.
     """
-    
+
     try:
         url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {"Authorization": f"Bearer {AI_API_KEY}", "Content-Type": "application/json"}
         payload = {
-            "model": "meta-llama/llama-3.2-11b-vision-instruct",
+            "model": "microsoft/phi-3-mini-128k-instruct",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 1000
         }
-        
+
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
-        
+
     except Exception as e:
         return f"Unable to generate explanation: {e}"
 
 # Enhanced tokenomics function
+@st.cache_data
 def fetch_enhanced_token_data(coin_id: str, investment_amount: float = 1000) -> Tuple[Dict, str]:
     """
     Fetch comprehensive tokenomics data and AI explanation
@@ -1155,23 +1158,24 @@ def fetch_enhanced_token_data(coin_id: str, investment_amount: float = 1000) -> 
     try:
         analyzer = ComprehensiveTokenomics()
         token_data = analyzer.fetch_comprehensive_token_data(coin_id, investment_amount)
-        
+
         if not token_data:
             return None, "Could not fetch token data. Please check the token name/symbol."
-        
+
         # Get AI explanation
         ai_explanation = get_ai_tokenomics_explanation(token_data, st.session_state.get("user_name", "User"))
-        
+
         return token_data, ai_explanation
-        
+
     except Exception as e:
         return None, f"Error in enhanced tokenomics analysis: {e}"
 
+@st.cache_data
 def enhanced_tokenomics_df(token_data: Dict) -> pd.DataFrame:
     """Create organized DataFrame for comprehensive tokenomics display"""
     if not token_data:
         return None
-    
+
     # Organize data into categories
     categories = {
         "🏷️ Basic Information": [
@@ -1203,35 +1207,36 @@ def enhanced_tokenomics_df(token_data: Dict) -> pd.DataFrame:
             "Exchange_Count", "Top_Exchange", "Primary_Category"
         ]
     }
-    
+
     # Add historical performance data
     performance_keys = [k for k in token_data.keys() if k.startswith(("Performance_", "CAGR_", "Sharpe_", "Max_Drawdown_", "Avg_Volume_"))]
     if performance_keys:
         categories["📊 Historical Analysis"] = performance_keys
-    
+
     # Create organized dataframe
     organized_data = []
-    
+
     for category, keys in categories.items():
         # Add category header
         organized_data.append({"Category": category, "Metric": "", "Value": ""})
-        
+
         for key in keys:
             if key in token_data:
                 # Format the key for display
                 display_key = key.replace("_", " ").title()
                 value = token_data[key]
-                
+
                 organized_data.append({
                     "Category": "",
                     "Metric": display_key,
                     "Value": str(value)
                 })
-    
+
     df = pd.DataFrame(organized_data)
     return df
 
 # Update the main tokenomics function call in the original code
+@st.cache_data
 def fetch_token_data(coin_id, investment_amount=1000):
     """Legacy function - redirects to enhanced version"""
     token_data, explanation = fetch_enhanced_token_data(coin_id, investment_amount)
@@ -1246,13 +1251,13 @@ def get_theme_css(theme):
         * {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
         }
-        
+
         .stApp {
             background: #1a1a1a;
             color: #ffffff !important;
             transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
-        
+
         /* Fix Streamlit header - the white bar at the top */
         header[data-testid="stHeader"],
         .stAppHeader,
@@ -1261,27 +1266,27 @@ def get_theme_css(theme):
             background-color: #1a1a1a !important;
             border-bottom: 1px solid #30363d !important;
         }
-        
+
         /* Fix the decoration bar inside header */
         .stDecoration,
         .st-emotion-cache-1dp5vir {
             background: #1a1a1a !important;
             background-color: #1a1a1a !important;
         }
-        
+
         /* Fix toolbar area */
         .stAppToolbar,
         .st-emotion-cache-15ecox0 {
             background: #1a1a1a !important;
             background-color: #1a1a1a !important;
         }
-        
+
         /* Fix toolbar actions */
         .stToolbarActions,
         .st-emotion-cache-1p1m4ay {
             background: #1a1a1a !important;
         }
-        
+
         /* Style the Deploy button and menu in header */
         button[data-testid="stBaseButton-header"],
         button[data-testid="stBaseButton-headerNoPadding"],
@@ -1291,39 +1296,39 @@ def get_theme_css(theme):
             color: #ffffff !important;
             border: 1px solid #484f58 !important;
         }
-        
+
         /* Hide or style the main menu */
         .stMainMenu {
             background: #1a1a1a !important;
         }
-        
+
         /* Sidebar styling */
         .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
             background: #161b22 !important;
             border-right: 1px solid #30363d;
         }
-        
+
         .css-1d391kg *, .css-1lcbmhc *, section[data-testid="stSidebar"] * {
             color: #ffffff !important;
         }
-        
+
         /* Nuclear approach for white bar above chat */
         .stApp > div {
             background: #1a1a1a !important;
         }
-        
+
         .stApp > div > div {
             background: #1a1a1a !important;
         }
-        
+
         .stApp > div > div > div {
             background: #1a1a1a !important;
         }
-        
+
         .stApp > div > div > div > div {
             background: #1a1a1a !important;
         }
-        
+
         /* Target all possible main content wrappers */
         .main, 
         .main > div,
@@ -1335,17 +1340,17 @@ def get_theme_css(theme):
             background: #1a1a1a !important;
             background-color: #1a1a1a !important;
         }
-        
+
         /* Override any element that might be white */
         .stApp div:not([data-testid="stChatMessage"]):not(.stFileUploader):not(.stButton) {
             background: transparent !important;
         }
-        
+
         /* Specific fix for main container */
         .css-1y4p8pa, .css-12oz5g7, .css-1629p8f {
             background: #1a1a1a !important;
         }
-        
+
         /* Chat messages */
         .stChatMessage {
             background: #21262d !important;
@@ -1354,17 +1359,17 @@ def get_theme_css(theme):
             margin: 1rem 0;
             padding: 1rem;
         }
-        
+
         .stChatMessage * {
             color: #ffffff !important;
         }
-        
+
         /* Headers */
         h1, h2, h3, h4, h5, h6 {
             color: #ffffff !important;
             font-weight: 600;
         }
-        
+
         /* Buttons */
         .stButton > button {
             background: #238636 !important;
@@ -1374,11 +1379,11 @@ def get_theme_css(theme):
             padding: 0.5rem 1rem;
             font-size: 14px;
         }
-        
+
         .stButton > button:hover {
             background: #2ea043 !important;
         }
-        
+
         /* Theme toggle button - Exact selector targeting */
         button[data-testid="stBaseButton-secondary"][kind="secondary"] {
             background: #30363d !important;
@@ -1389,7 +1394,7 @@ def get_theme_css(theme):
             min-width: 42px !important;
             height: 38px !important;
         }
-        
+
         /* Target the specific emotion-cache class if needed */
         .st-emotion-cache-qm7g72 {
             background: #30363d !important;
@@ -1397,20 +1402,20 @@ def get_theme_css(theme):
             border: 1px solid #484f58 !important;
             border-radius: 6px !important;
         }
-        
+
         /* Target the inner markdown container and paragraph */
         button[data-testid="stBaseButton-secondary"] .st-emotion-cache-p7i6r9,
         button[data-testid="stBaseButton-secondary"] .st-emotion-cache-p7i6r9 p {
             color: #ffffff !important;
         }
-        
+
         /* Backup selector using the button structure */
         button[kind="secondary"]:has(div[data-testid="stMarkdownContainer"]) {
             background: #30363d !important;
             color: #ffffff !important;
             border: 1px solid #484f58 !important;
         }
-        
+
         /* Input fields - FIXED for dark mode visibility */
         .stTextInput > div > div > input, 
         .stTextArea > div > div > textarea, 
@@ -1420,7 +1425,7 @@ def get_theme_css(theme):
             color: #ffffff !important;
             border-radius: 6px;
         }
-        
+
         .stTextInput > div > div > input::placeholder,
         .stTextArea > div > div > textarea::placeholder,
         .stChatInput > div > div > input::placeholder {
@@ -1428,14 +1433,14 @@ def get_theme_css(theme):
             opacity: 1 !important;
             transition: color 0.3s ease !important;
         }
-        
+
         .stTextInput > div > div > input:focus, 
         .stTextArea > div > div > textarea:focus, 
         .stChatInput > div > div > input:focus {
             border-color: #388bfd !important;
             box-shadow: 0 0 0 2px rgba(56, 139, 253, 0.3) !important;
         }
-        
+
         /* Chat input styling - Nuclear approach for stubborn Streamlit styling */
         [data-testid="stChatInput"],
         [data-testid="stChatInput"] > div,
@@ -1446,7 +1451,7 @@ def get_theme_css(theme):
             border: 1px solid #30363d !important;
             border-radius: 6px !important;
         }
-        
+
         [data-testid="stChatInput"] input,
         [data-testid="stChatInput"] textarea,
         [data-testid="stChatInput"] > div input,
@@ -1461,25 +1466,25 @@ def get_theme_css(theme):
             border: none !important;
             border-color: transparent !important;
         }
-        
+
         [data-testid="stChatInput"] input::placeholder,
         [data-testid="stChatInput"] textarea::placeholder {
             color: #8b949e !important;
         }
-        
+
         /* Catch-all for any remaining chat input elements */
         .stApp [data-testid="stChatInput"] * {
             background: #21262d !important;
             color: #ffffff !important;
         }
-        
+
         /* Override any emotion-cache classes that might be interfering */
         div[class*="st-emotion-cache"] input,
         div[class*="st-emotion-cache"] textarea {
             background: #21262d !important;
             color: #ffffff !important;
         }
-        
+
         /* File uploader - FIXED for dark mode */
         .stFileUploader > div {
             background: #21262d !important;
@@ -1487,33 +1492,33 @@ def get_theme_css(theme):
             border-radius: 6px;
             color: #ffffff !important;
         }
-        
+
         .stFileUploader * {
             color: #ffffff !important;
         }
-        
+
         /* File uploader button and text */
         .stFileUploader label {
             color: #ffffff !important;
         }
-        
+
         .stFileUploader button {
             background: #30363d !important;
             color: #ffffff !important;
             border: 1px solid #484f58 !important;
         }
-        
+
         /* File uploader drag area */
         .stFileUploader [data-testid="stFileUploaderDropzone"] {
             background: #21262d !important;
             border: 2px dashed #30363d !important;
             color: #ffffff !important;
         }
-        
+
         .stFileUploader [data-testid="stFileUploaderDropzone"] * {
             color: #ffffff !important;
         }
-        
+
         /* Success/Error messages */
         .stSuccess {
             background: #238636 !important;
@@ -1521,33 +1526,33 @@ def get_theme_css(theme):
             color: white !important;
             border-radius: 6px;
         }
-        
+
         .stError, .stWarning {
             background: #da3633 !important;
             border: 1px solid #f85149 !important;
             color: white !important;
             border-radius: 6px;
         }
-        
+
         .stInfo {
             background: #1f6feb !important;
             border: 1px solid #388bfd !important;
             color: white !important;
             border-radius: 6px;
         }
-        
+
         /* Tables */
         .stDataFrame {
             background: #21262d !important;
             border-radius: 6px;
             border: 1px solid #30363d;
         }
-        
+
         .stDataFrame * {
             color: #ffffff !important;
             background: #21262d !important;
         }
-        
+
         /* Metrics */
         div[data-testid="metric-container"] {
             background: #21262d !important;
@@ -1555,86 +1560,86 @@ def get_theme_css(theme):
             border-radius: 6px !important;
             padding: 1rem;
         }
-        
+
         div[data-testid="metric-container"] * {
             color: #ffffff !important;
         }
-        
+
         /* Expanders */
         .streamlit-expanderHeader {
             background: #21262d !important;
             color: #ffffff !important;
         }
-        
+
         .streamlit-expanderContent {
             background: #161b22 !important;
             border: 1px solid #30363d !important;
         }
-        
+
         /* Select boxes */
         .stSelectbox * {
             color: #ffffff !important;
             background: #21262d !important;
         }
-        
+
         /* Select box dropdown */
         .stSelectbox > div > div {
             background: #21262d !important;
             border: 1px solid #30363d !important;
         }
-        
+
         .stSelectbox option {
             background: #21262d !important;
             color: #ffffff !important;
         }
-        
+
         /* Markdown text */
         .stMarkdown * {
             color: #ffffff !important;
         }
-        
+
         /* Labels for inputs */
         label {
             color: #ffffff !important;
         }
-        
+
         /* Progress bars */
         .stProgress > div > div {
             background: #238636 !important;
         }
-        
+
         /* Sliders */
         .stSlider * {
             color: #ffffff !important;
         }
-        
+
         /* Number input */
         .stNumberInput > div > div > input {
             background: #21262d !important;
             border: 1px solid #30363d !important;
             color: #ffffff !important;
         }
-        
+
         /* Date input */
         .stDateInput > div > div > input {
             background: #21262d !important;
             border: 1px solid #30363d !important;
             color: #ffffff !important;
         }
-        
+
         /* Time input */
         .stTimeInput > div > div > input {
             background: #21262d !important;
             border: 1px solid #30363d !important;
             color: #ffffff !important;
         }
-        
+
         /* Code blocks */
         .stCodeBlock {
             background: #0d1117 !important;
             border: 1px solid #30363d !important;
         }
-        
+
         .stCodeBlock * {
             color: #e6edf3 !important;
         }
@@ -1647,28 +1652,28 @@ def get_theme_css(theme):
         * {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
         }
-        
+
         .stApp {
             background: #ffffff;
             color: #1a202c !important;
             transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
-        
+
         /* Global text color */
         .stApp * {
             color: #1a202c !important;
         }
-        
+
         /* Sidebar styling */
         .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
             background: #f7fafc !important;
             border-right: 1px solid #e2e8f0;
         }
-        
+
         .css-1d391kg *, .css-1lcbmhc *, section[data-testid="stSidebar"] * {
             color: #1a202c !important;
         }
-        
+
         /* Main content area */
         .main .block-container {
             background: rgba(255, 255, 255, 0.9);
@@ -1678,7 +1683,7 @@ def get_theme_css(theme):
             backdrop-filter: blur(10px);
             padding: 2rem;
         }
-        
+
         /* Chat messages */
         .stChatMessage {
             background: rgba(247, 250, 252, 0.8) !important;
@@ -1688,28 +1693,28 @@ def get_theme_css(theme):
             margin: 1rem 0;
             padding: 1rem;
         }
-        
+
         /* User messages */
         div[data-testid="stChatMessageContainer"]:has(div[data-testid="chatAvatarIcon-user"]) {
             background: linear-gradient(135deg, #3182ce 0%, #2b77cb 100%) !important;
             border: 1px solid #4299e1 !important;
             color: white !important;
         }
-        
+
         /* Assistant messages */
         div[data-testid="stChatMessageContainer"]:has(div[data-testid="chatAvatarIcon-assistant"]) {
             background: linear-gradient(135deg, #38a169 0%, #48bb78 100%) !important;
             border: 1px solid #68d391 !important;
             color: white !important;
         }
-        
+
         /* Headers */
         h1, h2, h3, h4, h5, h6 {
             color: #2d3748 !important;
             font-weight: 600;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-        
+
         h1 {
             color: #3182ce !important;
             background: linear-gradient(90deg, #3182ce, #4299e1);
@@ -1717,7 +1722,7 @@ def get_theme_css(theme):
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         /* Buttons */
         .stButton > button {
             background: linear-gradient(135deg, #3182ce 0%, #2b77cb 100%) !important;
@@ -1729,13 +1734,13 @@ def get_theme_css(theme):
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
         }
-        
+
         .stButton > button:hover {
             background: linear-gradient(135deg, #2c5aa0 0%, #2a69ac 100%) !important;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(49, 130, 206, 0.4);
         }
-        
+
         /* Input fields */
         .stTextInput > div > div > input, .stTextArea > div > div > textarea, .stChatInput > div > div > input {
             background: rgba(255, 255, 255, 0.9) !important;
@@ -1743,12 +1748,12 @@ def get_theme_css(theme):
             color: #2d3748 !important;
             border-radius: 6px;
         }
-        
+
         .stTextInput > div > div > input:focus, .stTextArea > div > div > textarea:focus, .stChatInput > div > div > input:focus {
             border-color: #3182ce !important;
             box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2) !important;
         }
-        
+
         /* File uploader */
         .stFileUploader > div {
             background: rgba(255, 255, 255, 0.9) !important;
@@ -1756,7 +1761,7 @@ def get_theme_css(theme):
             border-radius: 8px;
             padding: 2rem;
         }
-        
+
         /* Success/Error messages */
         .stSuccess {
             background: linear-gradient(135deg, #38a169 0%, #48bb78 100%) !important;
@@ -1764,21 +1769,21 @@ def get_theme_css(theme):
             color: white !important;
             border-radius: 8px;
         }
-        
+
         .stError {
             background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%) !important;
             border: 1px solid #feb2b2 !important;
             color: white !important;
             border-radius: 8px;
         }
-        
+
         /* Tables */
         .stDataFrame {
             background: rgba(255, 255, 255, 0.9) !important;
             border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
-        
+
         /* Metrics */
         div[data-testid="metric-container"] {
             background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%) !important;
@@ -1786,7 +1791,7 @@ def get_theme_css(theme):
             border-radius: 8px !important;
             padding: 1rem;
         }
-        
+
         /* Toggle switch */
         .stToggle > label {
             color: #2d3748 !important;
@@ -1808,13 +1813,13 @@ def get_autoscroll_script():
             if (mainContent) {
                 mainContent.scrollTop = mainContent.scrollHeight;
             }
-            
+
             // Scroll chat messages container
             const chatContainer = window.parent.document.querySelector('.main');
             if (chatContainer) {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
-            
+
             // Alternative: scroll entire window
             window.parent.scrollTo({
                 top: window.parent.document.body.scrollHeight,
@@ -1822,15 +1827,15 @@ def get_autoscroll_script():
             });
         }, 100);
     }
-    
+
     // Run on page load
     scrollToBottom();
-    
+
     // Watch for new messages
     const observer = new MutationObserver((mutations) => {
         scrollToBottom();
     });
-    
+
     // Observe the main container for changes
     const targetNode = window.parent.document.querySelector('[data-testid="stAppViewContainer"]');
     if (targetNode) {
@@ -2030,20 +2035,20 @@ def is_tokenomics_request(text):
         "comprehensive analysis", "full analysis", "detailed analysis"
     ]
     text_lower = text.lower()
-    
+
     # Check for explicit tokenomics keywords
     has_tokenomics = any(keyword in text_lower for keyword in tokenomics_specific)
-    
+
     # Check for prediction keywords that should override tokenomics
     prediction_override = any(keyword in text_lower for keyword in [
         "predict", "forecast", "next move", "price prediction", 
         "where will", "target price", "technical analysis", "trend"
     ])
-    
+
     # If it has prediction keywords, it's NOT tokenomics
     if prediction_override:
         return False
-        
+
     return has_tokenomics
 
 def is_prediction_request(text):
@@ -2122,7 +2127,7 @@ with st.sidebar:
     if uploaded is not None:
         st.session_state.uploaded_b64 = base64.b64encode(uploaded.read()).decode("utf-8")
         st.success("Chart uploaded and ready for analysis.")
-        
+
         # Add analyze button when chart is uploaded
         if st.button("🔍 Analyze Chart", key="analyze_chart_btn"):
             if not check_and_increment_usage("chart_analysis"):
@@ -2153,7 +2158,7 @@ with st.sidebar:
         st.session_state.show_terms = True
     st.markdown("---")
     st.subheader("Quick Analysis")
-    
+
     quick_coins = {
         "Bitcoin (BTC)": "BTCUSDT",
         "Ethereum (ETH)": "ETHUSDT",
@@ -2168,7 +2173,7 @@ with st.sidebar:
         "Polygon (MATIC)": "MATICUSDT",
         "Litecoin (LTC)": "LTCUSDT"
     }
-    
+
     quick_timeframes = {
         "1 Minute": "1m",
         "5 Minutes": "5m",
@@ -2177,10 +2182,10 @@ with st.sidebar:
         "4 Hours": "4h",
         "Daily": "1d"
     }
-    
+
     selected_coin = st.selectbox("Select Coin", list(quick_coins.keys()), key="quick_coin")
     selected_tf = st.selectbox("Select Timeframe", list(quick_timeframes.keys()), key="quick_tf")
-    
+
     if st.button("Run Quick Analysis", key="quick_analysis_btn"):
         if not check_and_increment_usage("quick_analysis"):
             st.warning("You've used all 3 free uses. Please sign up to continue!")
@@ -2194,7 +2199,7 @@ with st.sidebar:
                     df = analyzer.add_comprehensive_indicators(df)
                     confluences, latest = analyzer.generate_comprehensive_analysis(df)
                     bias, strength = analyzer.calculate_confluence_strength(confluences)
-                    
+
                     st.session_state.quick_analysis_result = {
                         "symbol": symbol,
                         "coin_name": selected_coin,
@@ -2209,21 +2214,21 @@ with st.sidebar:
                     st.error(f"Analysis failed: {str(e)}")
         else:
             st.error("Analysis module not available")
-    
+
     if "quick_analysis_result" in st.session_state and st.session_state.quick_analysis_result:
         result = st.session_state.quick_analysis_result
-        
+
         st.markdown("---")
         st.markdown(f"**{result['coin_name']}** | {result['tf_name']}")
-        
+
         bias_color = "green" if "bullish" in str(result['bias']).lower() else "red" if "bearish" in str(result['bias']).lower() else "orange"
         st.markdown(f"<p style='font-size:18px; font-weight:bold; color:{bias_color};'>{result['bias']}</p>", unsafe_allow_html=True)
         st.markdown(f"**Confidence:** {result['strength']:.1f}%")
-        
+
         bullish_count = len(result['confluences'].get('bullish', []))
         bearish_count = len(result['confluences'].get('bearish', []))
         neutral_count = len(result['confluences'].get('neutral', []))
-        
+
         st.markdown(f"""
 <div style='font-size:12px; padding:8px; background:#1a1a2e; border-radius:6px; margin:8px 0;'>
 <span style='color:#00ff88;'>Bullish: {bullish_count}</span> | 
@@ -2231,17 +2236,17 @@ with st.sidebar:
 <span style='color:#ffaa00;'>Neutral: {neutral_count}</span>
 </div>
 """, unsafe_allow_html=True)
-        
+
         if result['latest'] is not None:
             latest = result['latest']
             price = latest.get('Close', 0)
             rsi = latest.get('RSI_14', 0)
             st.markdown(f"**Price:** ${price:,.4f}")
             st.markdown(f"**RSI:** {rsi:.1f}")
-        
+
         st.markdown("---")
         st.info("For detailed analysis with trading plans and full confluence breakdown, use the chat: 'Predict [coin] [timeframe]'")
-        
+
         if st.button("Clear", key="clear_quick_analysis"):
             st.session_state.quick_analysis_result = None
             st.rerun()
@@ -2251,33 +2256,33 @@ col1, col2 = st.columns([3,1])
 
 with col1:
     st.header("Chat")
-    
+
     # Terms Modal - ADD THIS ENTIRE SECTION ↓
     if st.session_state.get("show_terms", False):
         with st.container():
             st.markdown("# 📄 Nunno AI - Terms of Service & User Guide")
             st.markdown("**Version 1.0 | Last Updated: December 2024**")
             st.markdown("---")
-            
+
             with st.expander("📋 About Nunno AI", expanded=True):
                 st.markdown("""
                 Nunno (Numinous Nexus AI) is an **educational platform** designed to help beginners learn about trading, 
                 investing, and cryptocurrency markets. Built by Mujtaba Kazmi and team, Nunno aims to make financial 
                 education accessible through AI-powered tools and analysis.
                 """)
-            
+
             with st.expander("🎓 Educational Purpose Statement - IMPORTANT", expanded=True):
                 st.warning("**NUNNO IS NOT A FINANCIAL ADVISOR**")
                 st.markdown("""
                 Nunno AI is designed **exclusively for educational purposes**. All features, analyses, predictions, 
                 and recommendations provided by Nunno are:
-                
+
                 **✅ What Nunno IS:**
                 - Educational examples and learning tools
                 - Market data analysis for study purposes
                 - Technical analysis demonstrations
                 - Portfolio construction examples
-                
+
                 **❌ What Nunno IS NOT:**
                 - Professional financial advice
                 - Investment recommendations
@@ -2285,7 +2290,7 @@ with col1:
                 - A substitute for licensed financial advisors
                 - Guaranteed or accurate predictions
                 """)
-            
+
             with st.expander("🛠️ What Nunno Can Do"):
                 st.markdown("""
                 ### Features:
@@ -2298,7 +2303,7 @@ with col1:
                 7. **Quick Analysis Tools** - Rapid technical analysis
                 8. **Portfolio Building Examples** - Sample allocations by risk level
                 """)
-            
+
             with st.expander("⚠️ User Responsibilities & Disclaimers - READ CAREFULLY"):
                 st.error("**BY USING NUNNO AI, YOU AGREE THAT:**")
                 st.markdown("""
@@ -2309,7 +2314,7 @@ with col1:
                 5. **Data Accuracy** - Data may be delayed, incomplete, or incorrect
                 6. **Risk Acknowledgment** - Trading involves substantial risk of loss
                 """)
-            
+
             with st.expander("🚫 Limitation of Liability - LEGAL PROTECTION"):
                 st.error("**THE COMPANY SHALL NOT BE LIABLE FOR:**")
                 st.markdown("""
@@ -2320,10 +2325,10 @@ with col1:
                 - Service interruptions or downtime
                 - Any direct, indirect, or consequential damages
                 - Lost profits or opportunities
-                
+
                 **Maximum Liability:** In no event shall our total liability exceed $0 (free service).
                 """)
-            
+
             with st.expander("🔧 Service Status & Development"):
                 st.info("**Active Development Notice**")
                 st.markdown("""
@@ -2332,7 +2337,7 @@ with col1:
                 - Bugs are being actively addressed
                 - We make no warranties about service availability or accuracy
                 """)
-            
+
             with st.expander("📊 Data Sources & Third Parties"):
                 st.markdown("""
                 Nunno uses data from:
@@ -2340,17 +2345,17 @@ with col1:
                 - Binance API (price and volume data)
                 - NewsAPI (market news)
                 - OpenRouter AI (language model services)
-                
+
                 **We are not responsible for third-party API failures or inaccuracies.**
                 """)
-            
+
             with st.expander("⚖️ Acceptable Use Policy"):
                 st.markdown("""
                 **✅ You MAY use Nunno for:**
                 - Learning about trading and investing
                 - Understanding market concepts
                 - Educational analysis and research
-                
+
                 **❌ You MAY NOT use Nunno for:**
                 - Automated trading systems
                 - Commercial redistribution of data
@@ -2358,25 +2363,25 @@ with col1:
                 - Market manipulation schemes
                 - Claiming Nunno's outputs as professional advice
                 """)
-            
+
             with st.expander("📢 Important Reminders"):
                 st.markdown("""
                 ### 🎓 Education First
                 Nunno is a learning tool. Use it to understand markets, not to make blind decisions.
-                
+
                 ### 💰 Risk Management
                 Never invest more than you can afford to lose. Diversify. Use stop losses.
-                
+
                 ### 🔍 Do Your Own Research (DYOR)
                 Always verify information and conduct thorough research.
-                
+
                 ### 👨‍💼 Seek Professional Advice
                 Consult licensed financial advisors for personalized guidance.
                 """)
-            
+
             st.markdown("---")
             st.success("**By continuing to use Nunno AI, you acknowledge that you have read and agree to these terms.**")
-            
+
             col_t1, col_t2 = st.columns([1, 1])
             with col_t1:
                 if st.button("✅ I Understand & Agree", key="accept_terms", use_container_width=True):
@@ -2387,7 +2392,7 @@ with col1:
                     st.session_state.show_terms = False
                     st.rerun()
     # Terms Modal END - ADD THIS ENTIRE SECTION ↑
-    
+
     # render conversation
     for msg in st.session_state.conversation:
         role = msg.get("role","user")
@@ -2401,14 +2406,14 @@ with col1:
             if kind == "tokenomics":
                 with st.chat_message("assistant"):
                     st.markdown("📊 **Comprehensive Tokenomics Analysis**")
-                    
+
                     # Display the organized dataframe
                     df = enhanced_tokenomics_df(msg.get("data",{}))
                     if df is not None:
                         # Display each category as an expander
                         current_category = None
                         category_data = []
-                        
+
                         for _, row in df.iterrows():
                             if row["Category"] and row["Category"] != current_category:
                                 # Display previous category if exists
@@ -2416,19 +2421,19 @@ with col1:
                                     with st.expander(current_category, expanded=True):
                                         category_df = pd.DataFrame(category_data)
                                         st.table(category_df[["Metric", "Value"]])
-                                
+
                                 # Start new category
                                 current_category = row["Category"]
                                 category_data = []
                             elif row["Metric"]:  # Only add rows with actual metrics
                                 category_data.append({"Metric": row["Metric"], "Value": row["Value"]})
-                        
+
                         # Display final category
                         if current_category and category_data:
                             with st.expander(current_category, expanded=True):
                                 category_df = pd.DataFrame(category_data)
                                 st.table(category_df[["Metric", "Value"]])
-                    
+
                     # Display risk assessment prominently
                     data = msg.get("data", {})
                     risk_level = data.get("Risk_Level", "")
@@ -2438,18 +2443,18 @@ with col1:
                         st.warning(f"⚡ {risk_level}")
                     else:
                         st.success(f"✅ {risk_level}")
-                    
+
                     # Display AI explanation
                     ai_explanation = msg.get("ai_explanation", "")
                     if ai_explanation:
                         st.markdown("### 🤖 AI Explanation")
                         st.markdown(ai_explanation)
-                    
+
                     # Display investment recommendation prominently
                     recommendation = data.get("Investment_Recommendation", "")
                     if recommendation:
                         st.info(f"💡 **Investment Recommendation:** {recommendation}")
-                        
+
             elif kind == "prediction":
                 with st.chat_message("assistant"):
                     data = msg.get("data",{})
@@ -2457,7 +2462,7 @@ with col1:
                     strength = data.get("strength",0) or 0
                     symbol = data.get("symbol","")
                     tf = data.get("tf","")
-                    
+
                     # Display prediction header
                     if isinstance(bias, str) and "bullish" in bias.lower():
                         st.success(f"🎯 {symbol} ({tf}) — Bias: {bias} ({strength:.1f}% confidence)")
@@ -2470,7 +2475,7 @@ with col1:
                     confluences = data.get("confluences", {})
                     if confluences:
                         st.markdown("### 📊 Confluence Analysis")
-                        
+
                         # Bullish confluences
                         if confluences.get("bullish"):
                             st.markdown("#### 🟢 Bullish Signals")
@@ -2479,7 +2484,7 @@ with col1:
                                     st.markdown(f"**Condition:** {conf.get('condition', 'N/A')}")
                                     st.markdown(f"**Implication:** {conf.get('implication', 'N/A')}")
                                     st.markdown(f"**Timeframe:** {conf.get('timeframe', 'N/A')}")
-                        
+
                         # Bearish confluences
                         if confluences.get("bearish"):
                             st.markdown("#### 🔴 Bearish Signals")
@@ -2488,7 +2493,7 @@ with col1:
                                     st.markdown(f"**Condition:** {conf.get('condition', 'N/A')}")
                                     st.markdown(f"**Implication:** {conf.get('implication', 'N/A')}")
                                     st.markdown(f"**Timeframe:** {conf.get('timeframe', 'N/A')}")
-                        
+
                         # Neutral signals
                         if confluences.get("neutral"):
                             st.markdown("#### 🟡 Neutral/Mixed Signals")
@@ -2503,7 +2508,7 @@ with col1:
                     if plan:
                         st.markdown("### 📋 Trading Plan")
                         st.text(plan)
-                        
+
                     # Display key levels if available
                     latest_data = data.get("latest_data")
                     if latest_data:
@@ -2517,12 +2522,12 @@ with col1:
                             st.metric("RSI", f"{latest_data.get('RSI_14', 0):.1f}")
                             st.metric("BB Upper", f"${latest_data.get('BB_Upper', 0):.4f}")
                             st.metric("BB Lower", f"${latest_data.get('BB_Lower', 0):.4f}")
-                    
+
                     note = msg.get("content","")
                     if note:
                         st.markdown("### 💡 Additional Notes")
                         st.markdown(note)
-                        
+
             elif kind == "montecarlo":
                 with st.chat_message("assistant"):
                     st.markdown("🧪 **Monte Carlo Simulation**")
@@ -2546,13 +2551,13 @@ with col1:
     # Chat input
     if st.session_state.conversation:
         st.markdown(get_autoscroll_script(), unsafe_allow_html=True)
-    
-    prompt = st.chat_input("Ask Nunno about trading, tokenomics, predictions, news...")
+
+    prompt = st.chat_input("  Ask Nunno...")
     if prompt:
         if not check_and_increment_usage("chat"):
             st.warning("You've used all 3 free uses. Please sign up in the sidebar to continue using Nunno AI!")
             st.stop()
-        
+
         st.session_state.conversation.append({"role":"user","content":prompt})
         lower = prompt.lower()
 
@@ -2611,12 +2616,12 @@ with col1:
                     "icp": "ICPUSDT", "internet computer": "ICPUSDT",
                     "hbar": "HBARUSDT", "hedera": "HBARUSDT",
                 }
-                
+
                 for key, val in symbol_mappings.items():
                     if key in lower:
                         symbol = val
                         break
-                
+
                 # Extract timeframe
                 tf = "15m"
                 tf_mappings = {
@@ -2627,19 +2632,19 @@ with col1:
                     "4h": "4h", "4 hour": "4h", "4hr": "4h",
                     "1d": "1d", "daily": "1d", "day": "1d"
                 }
-                
+
                 for key, val in tf_mappings.items():
                     if key in lower:
                         tf = val
                         break
-                
+
                 try:
                     analyzer = betterpredictormodule.TradingAnalyzer()
                     df = analyzer.fetch_binance_ohlcv(symbol=symbol, interval=tf, limit=1000)
                     df = analyzer.add_comprehensive_indicators(df)
                     confluences, latest = analyzer.generate_comprehensive_analysis(df)
                     bias, strength = analyzer.calculate_confluence_strength(confluences)
-                    
+
                     # Capture trading plan output
                     old_stdout = io.StringIO()
                     backup = sys.stdout
@@ -2649,7 +2654,7 @@ with col1:
                     finally:
                         sys.stdout = backup
                     plan_text = old_stdout.getvalue()
-                    
+
                     assistant_entry["kind"] = "prediction"
                     assistant_entry["data"] = {
                         "symbol": symbol,
@@ -2661,7 +2666,7 @@ with col1:
                         "latest_data": latest.to_dict() if latest is not None else None
                     }
                     assistant_entry["content"] = f"Completed technical analysis for {symbol} on {tf} timeframe."
-                    
+
                 except Exception as e:
                     assistant_entry["content"] = f"Prediction error: {e}"
 
@@ -2672,7 +2677,7 @@ with col1:
             match = re.search(r'\$?(\d+(?:,\d{3})*(?:\.\d{2})?)', prompt)
             if match:
                 investment = float(match.group(1).replace(',', ''))
-            
+
             # Extract coin/token
             coin = "bitcoin"
             common_coins = {
@@ -2707,12 +2712,12 @@ with col1:
                 "grt": "the-graph", "rune": "thorchain",
                 "sei": "sei-network", "tia": "celestia"
             }
-            
+
             for key, val in common_coins.items():
                 if key in lower:
                     coin = val
                     break
-            
+
             # If no common coin found, try fuzzy matching
             if coin == "bitcoin" and not any(k in lower for k in common_coins.keys()):
                 tokens = re.findall(r'\b([a-z]{2,10})\b', lower)
@@ -2720,11 +2725,11 @@ with col1:
                     suggestions = suggest_similar_tokens(tokens[0])
                     if suggestions:
                         coin = suggestions[0]
-            
+
             # Use enhanced tokenomics function
             with st.spinner("Fetching comprehensive tokenomics data..."):
                 token_data, ai_explanation = fetch_enhanced_token_data(coin, investment)
-            
+
             if token_data:
                 assistant_entry["kind"] = "tokenomics"
                 assistant_entry["data"] = token_data
@@ -2768,29 +2773,29 @@ with col1:
         st.session_state.conversation = manage_history_length(st.session_state.conversation)
         st.markdown(get_autoscroll_script(), unsafe_allow_html=True)
         st.rerun()
-        
+
 
 with col2:
     st.subheader("Quick Info")
-    
+
     # Module Status
     st.markdown("**🧩 Features**")
     if betterpredictormodule:
         st.success("✅ Predictions Available")
     else:
         st.warning("⚠️ Predictions Module Missing")
-        
+
     if simulate_trades:
         st.success("✅ Monte Carlo Available")
     else:
-        st.warning("⚠️ Monte Carlo Module Missing")
-    
+        st.warning("⚠️ Monte Carlo Module In Development")
+
     # Upload status
     if st.session_state.uploaded_b64:
         st.success("📷 Chart Ready for Analysis")
     else:
         st.info("📷 No Chart Uploaded")
-        
+
     st.markdown("---")
     st.markdown("**💡 Tips**")
     st.markdown("- Use specific coin names (BTC, ETH, ADA)")
@@ -2798,7 +2803,7 @@ with col2:
     st.markdown("- Ask for predictions, tokenomics, or news")
     st.markdown("- Upload charts for technical analysis")
     st.markdown("- Try 'comprehensive analysis' for full tokenomics")
-    
+
     # Chart Analysis Results Section
     if st.session_state.chart_analysis:
         st.markdown("---")
